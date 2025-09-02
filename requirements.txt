@@ -1,0 +1,6 @@
+# Required dependencies
+psutil>=5.9.0
+
+# Optional dependencies for metrics export
+prometheus_client>=0.14.1  # For Prometheus integration
+influxdb-client>=1.30.0    # For InfluxDB integration
