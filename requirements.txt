@@ -1,3 +1,4 @@
+requests
 # Required dependencies
 psutil>=5.9.0
 

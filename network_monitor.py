@@ -13,6 +13,8 @@ import psutil
 import logging
 import argparse
 from datetime import datetime
+import socket
+
 try:
     from metrics_exporter import MetricsExporter
     METRICS_EXPORT_AVAILABLE = True
@@ -32,9 +34,36 @@ logger = logging.getLogger(__name__)
 
 # Default thresholds in Mbps
 DEFAULT_THRESHOLDS = {
-    'upload': 50,  # 50 Mbps
-    'download': 100  # 100 Mbps
+    'upload': 100,  # 50 Mbps
+    'download': 150  # 100 Mbps
 }
+
+
+def get_active_connections(limit=5):
+    """
+    Get active network connections (basic info: remote IP, port, hostname).
+
+    Args:
+        limit (int): Maximum number of connections to return
+    Returns:
+        list of dict: Connection details
+    """
+    conns = psutil.net_connections(kind="inet")
+    results = []
+    for c in conns:
+        if c.raddr:  # só conexões remotas
+            ip = c.raddr.ip
+            try:
+                host = socket.gethostbyaddr(ip)[0]
+            except Exception:
+                host = None
+            results.append({
+                "remote_ip": ip,
+                "remote_port": c.raddr.port,
+                "hostname": host or "N/A"
+            })
+    return results[:limit]
+
 
 class NetworkMonitor:
     """Monitor network bandwidth and trigger alerts on threshold violations."""
@@ -125,6 +154,7 @@ class NetworkMonitor:
         Args:
             duration (int, optional): Duration to monitor in seconds. If None, runs indefinitely.
         """
+        global active_conns
         logger.info("Starting network monitoring...")
         start_time = time.time()
 
@@ -144,6 +174,12 @@ class NetworkMonitor:
                 # Log current bandwidth usage
                 if upload_speed > 0 or download_speed > 0:  # Only log if there's actual traffic
                     logger.info(f"Upload: {upload_speed:.2f} Mbps, Download: {download_speed:.2f} Mbps")
+                    # 🔎 também loga conexões ativas
+                    active_conns = get_active_connections(limit=5)
+                    for conn in active_conns:
+                        logger.info(
+                            f"Conn -> {conn['remote_ip']}:{conn['remote_port']} ({conn['hostname']})"
+                        )
 
                 # Export metrics if exporter is available
                 if self.metrics_exporter:
@@ -170,11 +206,8 @@ class NetworkMonitor:
                             except (IndexError, KeyError, AttributeError) as e:
                                 logger.debug(f"Error getting network interface details: {e}")
 
-                        self.metrics_exporter.export_metrics(
-                            upload_speed=float(upload_speed),
-                            download_speed=float(download_speed),
-                            tags={"host": host_addr, "interface": interface_name}
-                        )
+                           ##self.metrics_exporter.export_metrics(upload_speed=float(upload_speed),download_speed=float(download_speed),tags={"host": host_addr, "interface": interface_name},connections=active_conns)
+
                     except Exception as e:
                         logger.error(f"Error exporting metrics: {e}")
 

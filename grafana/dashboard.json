@@ -1,0 +1,68 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Network Monitor",
+    "tags": ["network", "bandwidth"],
+    "timezone": "browser",
+    "schemaVersion": 37,
+    "version": 1,
+    "panels": [
+      {
+        "type": "timeseries",
+        "title": "Download (Mbps)",
+        "targets": [
+          {
+            "expr": "network_download_mbps",
+            "legendFormat": "Download",
+            "refId": "A"
+          }
+        ],
+        "id": 1
+      },
+      {
+        "type": "timeseries",
+        "title": "Upload (Mbps)",
+        "targets": [
+          {
+            "expr": "network_upload_mbps",
+            "legendFormat": "Upload",
+            "refId": "A"
+          }
+        ],
+        "id": 2
+      },
+      {
+        "type": "stat",
+        "title": "Conexões Ativas",
+        "targets": [
+          {
+            "expr": "network_active_connections",
+            "refId": "A"
+          }
+        ],
+        "id": 3
+      },
+      {
+        "type": "table",
+        "title": "Conexões por IP/Domínio",
+        "targets": [
+          {
+            "expr": "network_connection_info",
+            "refId": "A"
+          }
+        ],
+        "id": 4,
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Value"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

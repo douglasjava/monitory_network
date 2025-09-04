@@ -298,3 +298,5 @@ Para parar e remover todos os volumes (isso excluirá todos os dados armazenados
 ```
 docker-compose down -v
 ```
+
+> python network_monitor.py --prometheus --prometheus-port 8000 --influxdb --influxdb-url http://localhost:8086 --influxdb-token admin-token --influxdb-org myorg --influxdb-bucket network_metrics
